@@ -1,0 +1,119 @@
+ConsensusX Test Cases
+=====================
+
+Run each test by loading the described input (manual or FASTA) and verifying expected output.
+
+TEST 1: Identical Sequences
+Input:
+  Seq1: ATGCT
+  Seq2: ATGCT
+  Seq3: ATGCT
+Expected consensus: ATGCT
+Expected variable positions: 0
+Expected pairwise similarity: 100% for all pairs
+
+TEST 2: One Variable Position
+Input:
+  Seq1: ATGCT
+  Seq2: ATGGT
+  Seq3: ATGCT
+  Seq4: ATGAT
+Expected consensus: ATGCT (position 4: T=2, G=1, A=1 -> T wins)
+Expected variable position: 4
+
+TEST 3: Multiple Variable Positions
+Input:
+  Seq1: ATGCAA
+  Seq2: ATGCAG
+  Seq3: ATGCTG
+Expected variable positions: 5, 6
+
+TEST 4: Lowercase Sequences
+Input:
+  Seq1: atgct
+  Seq2: ATGCT
+Expected: validation passes, uppercase conversion applied
+
+TEST 5: Invalid DNA Characters
+Input:
+  Seq1: ATGXCT
+  Seq2: ATGCT
+Expected: validation error for invalid character X
+
+TEST 6: Different Sequence Lengths
+Input:
+  Seq1: ATGCT
+  Seq2: ATGC
+Expected: validation error for unequal lengths
+
+TEST 7: Gaps in Alignment
+Input:
+  Seq1: ATGCT
+  Seq2: AT-C-
+  Seq3: ATGCT
+Expected: gap columns handled; gaps ignored in consensus majority
+
+TEST 8: Ties Between Nucleotides
+Input:
+  Seq1: A
+  Seq2: G
+Expected consensus: R (IUPAC purine ambiguity for A/G tie)
+
+TEST 9: FASTA Parsing (standard format)
+File: data/example.fasta
+Expected: 4 sequences loaded successfully
+
+TEST 10: FASTA Parsing (headerless format)
+File content:
+  Sequence_1
+  ATGCTAGCTAGC
+  Sequence_2
+  ATGCTGGCTAGC
+Expected: 2 sequences loaded
+
+TEST 11: GC Calculation
+Input: ATGC (50% GC)
+Expected GC: 50%
+
+TEST 12: Conservation Calculation
+Input at position 1: A in 8/10 sequences (2 gaps)
+Expected conservation at position 1: 80%
+
+TEST 13: Pairwise Similarity
+Input:
+  Seq1: ATGC
+  Seq2: ATGC
+  Seq3: AGGC
+Expected: Seq1-Seq2 = 100%, Seq1-Seq3 = 75%, Seq2-Seq3 = 75%
+
+TEST 14: Sliding-Window GC
+Input consensus: ATGCATGCATGCATGCATGC (20 bp, 50% GC)
+Window size: 10
+Expected: Window 1-10: 50%, Window 11-20: 50%
+
+TEST 15: Fewer Than Two Sequences
+Input: single sequence ATGCT
+Expected: validation error
+
+TEST 16: Empty Sequence
+Input: Seq1 empty, Seq2 ATGCT
+Expected: validation error
+
+TEST 17: All-Gap Column
+Input:
+  Seq1: A-T
+  Seq2: ---
+Expected consensus at position 2: -
+
+TEST 18: Confidence Score
+Input at position: A=5, G=5 (10 sequences)
+Expected confidence: 0% (Very low)
+
+TEST 19: Confidence Score (unanimous)
+Input at position: A=10
+Expected confidence: 100% (High)
+
+TEST 20: Export
+After analysis, option 10 should create:
+  - consensusx_report.txt
+  - consensus.fasta

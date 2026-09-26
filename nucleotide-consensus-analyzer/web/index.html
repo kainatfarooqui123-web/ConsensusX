@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nucleotide Consensus Sequence Analyzer</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --border: #2d3a4f;
+      --text: #e7ecf3;
+      --muted: #8b9cb3;
+      --accent: #3dd6b5;
+      --accent-dim: #2a9d82;
+      --error: #ff6b6b;
+      --found: #51cf66;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .wrap {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 3rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.35rem;
+    }
+
+    header p { color: var(--muted); font-size: 0.95rem; }
+
+    .motif-box {
+      display: inline-flex;
+      gap: 0.35rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .motif-box span {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.25rem 0.55rem;
+      font-family: "Consolas", monospace;
+      font-size: 0.9rem;
+    }
+
+    .motif-box .fixed { color: var(--accent); }
+    .motif-box .wild { color: #ffd43b; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .card h2 {
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+
+    textarea, input[type="text"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: "Consolas", monospace;
+      font-size: 0.95rem;
+      padding: 0.85rem;
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    textarea:focus, input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent-dim);
+    }
+
+    .hint { font-size: 0.82rem; color: var(--muted); margin-top: 0.5rem; }
+
+    button {
+      margin-top: 1rem;
+      background: var(--accent);
+      color: #0a1612;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    button:hover { background: var(--accent-dim); color: #fff; }
+
+    .error {
+      color: var(--error);
+      background: rgba(255, 107, 107, 0.1);
+      border: 1px solid rgba(255, 107, 107, 0.35);
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .results { display: none; }
+    .results.visible { display: block; }
+
+    .result-badge {
+      display: inline-block;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      padding: 0.3rem 0.75rem;
+      border-radius: 999px;
+      margin-bottom: 1rem;
+    }
+
+    .result-badge.found { background: rgba(81, 207, 102, 0.15); color: var(--found); }
+    .result-badge.not-found { background: rgba(255, 107, 107, 0.12); color: var(--error); }
+
+    .match {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .match strong { color: var(--accent); }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 0.65rem;
+    }
+
+    .stat {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+    }
+
+    .stat .label { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; }
+    .stat .value { font-size: 1.25rem; font-weight: 600; font-family: "Consolas", monospace; }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Nucleotide Consensus Sequence Analyzer</h1>
+      <p>Search DNA/RNA sequences for the <strong>CnGCnG</strong> consensus motif</p>
+      <div class="motif-box" aria-label="Motif pattern">
+        <span class="fixed">C</span>
+        <span class="wild">n</span>
+        <span class="fixed">G</span>
+        <span class="fixed">C</span>
+        <span class="wild">n</span>
+        <span class="fixed">G</span>
+      </div>
+      <p class="hint" style="margin-top:0.75rem"><strong>n</strong> = any nucleotide (A, C, G, T, or U)</p>
+    </header>
+
+    <section class="card">
+      <h2>Input Sequence</h2>
+      <label for="sequence">Paste nucleotide sequence (uppercase/lowercase, spaces and line breaks OK)</label>
+      <textarea id="sequence" placeholder="e.g. CAGCTGCAGCTG"></textarea>
+      <p class="hint">Valid nucleotides: A, C, G, T, U</p>
+      <button type="button" id="analyzeBtn">Analyze Sequence</button>
+      <div id="errorBox" class="error" style="display:none"></div>
+
+      <hr style="border:none;border-top:1px solid var(--border);margin:1.5rem 0">
+      <h2 style="margin-bottom:0.75rem">Specific Nucleotide Sequence Finder</h2>
+      <label for="findSequenceInput">Sequence to Find</label>
+      <input type="text" id="findSequenceInput" placeholder="e.g. CTAAC">
+      <p class="hint">Valid nucleotides: A, C, G, T, U</p>
+      <button type="button" id="findSequenceBtn">Find Sequence</button>
+      <div id="findErrorBox" class="error" style="display:none"></div>
+      <div id="findResults" style="display:none;margin-top:1.25rem;"></div>
+    </section>
+
+    <section id="results" class="card results">
+      <h2>Analysis Results</h2>
+      <div id="resultBadge"></div>
+      <div id="matchesSection"></div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:1.25rem 0">
+      <h2 style="margin-bottom:0.75rem">Sequence Statistics</h2>
+      <div id="statsGrid" class="stats-grid"></div>
+    </section>
+
+    <footer>
+      Nucleotide Consensus Sequence Analyzer — C++ logic ported for browser use. No data leaves your device.
+    </footer>
+  </div>
+
+  <script>
+    function isNucleotide(c) {
+      return 'ACGTU'.includes(c);
+    }
+
+    function cleanSequence(raw) {
+      return raw.replace(/[\s\r\n\t]/g, '').toUpperCase();
+    }
+
+    function validateSequence(seq) {
+      if (!seq.length) return 'Error: Sequence is empty. Please enter at least one nucleotide.';
+      for (let i = 0; i < seq.length; i++) {
+        if (!isNucleotide(seq[i])) {
+          return `Error: Invalid character '${seq[i]}' at position ${i + 1}. Only A, C, G, T, and U are allowed.`;
+        }
+      }
+      return null;
+    }
+
+    function matchesConsensus(seq, index) {
+      if (index + 6 > seq.length) return false;
+      return seq[index] === 'C'
+        && isNucleotide(seq[index + 1])
+        && seq[index + 2] === 'G'
+        && seq[index + 3] === 'C'
+        && isNucleotide(seq[index + 4])
+        && seq[index + 5] === 'G';
+    }
+
+    function findConsensus(seq) {
+      const matches = [];
+      for (let i = 0; i + 6 <= seq.length; i++) {
+        if (matchesConsensus(seq, i)) {
+          matches.push({
+            sequence: seq.slice(i, i + 6),
+            startPos: i + 1,
+            endPos: i + 6
+          });
+        }
+      }
+      return matches;
+    }
+
+    function calculateGCContent(seq) {
+      const stats = { length: seq.length, A: 0, C: 0, G: 0, T: 0, U: 0, gcPercent: 0 };
+      for (const ch of seq) {
+        if (ch === 'A') stats.A++;
+        else if (ch === 'C') stats.C++;
+        else if (ch === 'G') stats.G++;
+        else if (ch === 'T') stats.T++;
+        else if (ch === 'U') stats.U++;
+      }
+      if (stats.length > 0) {
+        stats.gcPercent = ((stats.G + stats.C) / stats.length) * 100;
+      }
+      return stats;
+    }
+
+    function analyze() {
+      const errorBox = document.getElementById('errorBox');
+      const results = document.getElementById('results');
+      errorBox.style.display = 'none';
+      results.classList.remove('visible');
+
+      const raw = document.getElementById('sequence').value;
+      const seq = cleanSequence(raw);
+      const err = validateSequence(seq);
+
+      if (err) {
+        errorBox.textContent = err;
+        errorBox.style.display = 'block';
+        return;
+      }
+
+      const stats = calculateGCContent(seq);
+
+      document.getElementById('statsGrid').innerHTML = `
+        <div class="stat"><div class="label">Length</div><div class="value">${stats.length}</div></div>
+        <div class="stat"><div class="label">A</div><div class="value">${stats.A}</div></div>
+        <div class="stat"><div class="label">C</div><div class="value">${stats.C}</div></div>
+        <div class="stat"><div class="label">G</div><div class="value">${stats.G}</div></div>
+        <div class="stat"><div class="label">T</div><div class="value">${stats.T}</div></div>
+        <div class="stat"><div class="label">U</div><div class="value">${stats.U}</div></div>
+        <div class="stat"><div class="label">GC %</div><div class="value">${stats.gcPercent.toFixed(2)}%</div></div>
+      `;
+
+      results.classList.add('visible');
+    }
+
+    document.getElementById('analyzeBtn').addEventListener('click', analyze);
+
+    function find_sequence(full_sequence, query_sequence) {
+      const full = full_sequence.replace(/[\s\r\n\t]/g, '').toUpperCase();
+      const query = query_sequence.replace(/[\s\r\n\t]/g, '').toUpperCase();
+      if (!full || !query) {
+        return { present: false, positions: [] };
+      }
+      const positions = [];
+      let idx = 0;
+      while (idx <= full.length - query.length) {
+        const found = full.indexOf(query, idx);
+        if (found === -1) break;
+        positions.push(found + 1); // 1-based biological numbering
+        idx = found + 1; // allows overlapping matches
+      }
+      return {
+        present: positions.length > 0,
+        positions: positions
+      };
+    }
+
+    function parseInputSequences(raw) {
+      if (!raw || !raw.trim()) return [];
+
+      const lines = raw.split(/\r?\n/);
+      const hasFastaHeader = lines.some(l => l.trim().startsWith('>'));
+      const hasLabeledHeader = lines.some(l => /^(sequence|seq|sample)\s*\d*.*:/i.test(l.trim()));
+
+      if (hasFastaHeader) {
+        const sequences = [];
+        let currentName = '';
+        let currentSeq = '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('>')) {
+            if (currentName || currentSeq) {
+              sequences.push({
+                name: currentName || `Sequence ${sequences.length + 1}`,
+                sequence: currentSeq
+              });
+            }
+            currentName = trimmed.slice(1).trim();
+            currentSeq = '';
+          } else {
+            currentSeq += trimmed.replace(/\s+/g, '');
+          }
+        }
+        if (currentName || currentSeq) {
+          sequences.push({
+            name: currentName || `Sequence ${sequences.length + 1}`,
+            sequence: currentSeq
+          });
+        }
+        return sequences;
+      }
+
+      if (hasLabeledHeader) {
+        const sequences = [];
+        let currentName = '';
+        let currentSeq = '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (/^(sequence|seq|sample)\s*\d*.*:/i.test(trimmed)) {
+            if (currentName || currentSeq) {
+              sequences.push({
+                name: currentName || `Sequence ${sequences.length + 1}`,
+                sequence: currentSeq
+              });
+            }
+            const colonIdx = trimmed.indexOf(':');
+            currentName = trimmed.slice(0, colonIdx).trim();
+            const rest = trimmed.slice(colonIdx + 1).trim();
+            currentSeq = rest.replace(/\s+/g, '');
+          } else {
+            currentSeq += trimmed.replace(/\s+/g, '');
+          }
+        }
+        if (currentName || currentSeq) {
+          sequences.push({
+            name: currentName || `Sequence ${sequences.length + 1}`,
+            sequence: currentSeq
+          });
+        }
+        return sequences;
+      }
+
+      // Single sequence (ignoring spaces and line breaks, e.g. Test 4)
+      const cleaned = cleanSequence(raw);
+      return [{ name: '', sequence: cleaned }];
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function findSequenceHandler() {
+      const findErrorBox = document.getElementById('findErrorBox');
+      const findResults = document.getElementById('findResults');
+      findErrorBox.style.display = 'none';
+      findResults.style.display = 'none';
+      findResults.innerHTML = '';
+
+      const rawInput = document.getElementById('sequence').value;
+      if (!rawInput.trim()) {
+        findErrorBox.textContent = 'Error: Sequence is empty. Please enter at least one nucleotide.';
+        findErrorBox.style.display = 'block';
+        return;
+      }
+
+      const rawQuery = document.getElementById('findSequenceInput').value;
+      const query = cleanSequence(rawQuery);
+      if (!query.length) {
+        findErrorBox.textContent = 'Error: Please enter a nucleotide sequence to search.';
+        findErrorBox.style.display = 'block';
+        return;
+      }
+
+      const queryErr = validateSequence(query);
+      if (queryErr) {
+        findErrorBox.textContent = 'Error in search sequence: ' + queryErr.replace('Error: ', '');
+        findErrorBox.style.display = 'block';
+        return;
+      }
+
+      const seqList = parseInputSequences(rawInput);
+      if (!seqList.length) {
+        findErrorBox.textContent = 'Error: Sequence is empty. Please enter at least one nucleotide.';
+        findErrorBox.style.display = 'block';
+        return;
+      }
+
+      for (let i = 0; i < seqList.length; i++) {
+        const item = seqList[i];
+        const label = item.name || (seqList.length > 1 ? `Sequence ${i + 1}` : '');
+        const err = validateSequence(item.sequence);
+        if (err) {
+          findErrorBox.textContent = label ? `${label}: ${err}` : err;
+          findErrorBox.style.display = 'block';
+          return;
+        }
+      }
+
+      const isMultiple = seqList.length > 1 || Boolean(seqList[0].name);
+
+      if (!isMultiple) {
+        const res = find_sequence(seqList[0].sequence, query);
+        if (res.present) {
+          const posText = res.positions.length === 1
+            ? `Position: ${res.positions[0]}`
+            : `Positions: ${res.positions.join(', ')}`;
+          findResults.innerHTML = `<span class="result-badge found">Present — ${posText}</span>`;
+        } else {
+          findResults.innerHTML = `<span class="result-badge not-found">Not Present</span>`;
+        }
+      } else {
+        let html = '';
+        for (let i = 0; i < seqList.length; i++) {
+          const s = seqList[i];
+          const label = s.name || `Sequence ${i + 1}`;
+          const res = find_sequence(s.sequence, query);
+          if (res.present) {
+            const posText = res.positions.length === 1
+              ? `Position: ${res.positions[0]}`
+              : `Positions: ${res.positions.join(', ')}`;
+            html += `
+              <div class="match">
+                <strong>${escapeHtml(label)}</strong>:
+                <span class="result-badge found" style="margin-left:0.5rem;margin-bottom:0;">Present — ${posText}</span>
+              </div>
+            `;
+          } else {
+            html += `
+              <div class="match">
+                <strong>${escapeHtml(label)}</strong>:
+                <span class="result-badge not-found" style="margin-left:0.5rem;margin-bottom:0;">Not Present</span>
+              </div>
+            `;
+          }
+        }
+        findResults.innerHTML = html;
+      }
+
+      findResults.style.display = 'block';
+    }
+
+    document.getElementById('findSequenceBtn').addEventListener('click', findSequenceHandler);
+  </script>
+</body>
+</html>

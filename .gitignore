@@ -1,0 +1,21 @@
+# Build artifacts
+build/
+*.exe
+*.o
+*.obj
+consensusx
+ConsensusX
+
+# Output files
+consensusx_report.txt
+consensus.fasta
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*~
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConsensusX - Simple UI</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🧬 ConsensusX</h1>
+      <p class="subtitle">Save and view DNA sequences (connected to MongoDB)</p>
+    </header>
+
+    <section class="card">
+      <h2>Add a Sequence</h2>
+      <form id="sequenceForm">
+        <label>
+          Sequence Name
+          <input type="text" id="name" placeholder="e.g. Sample_1" required>
+        </label>
+        <label>
+          DNA Sequence
+          <textarea id="sequence" rows="3" placeholder="e.g. ATGCTAGCTAGC" required></textarea>
+        </label>
+        <label>
+          Notes (optional)
+          <input type="text" id="notes" placeholder="Any notes...">
+        </label>
+        <button type="submit">Save to Database</button>
+      </form>
+      <p id="message" class="message"></p>
+    </section>
+
+    <section class="card">
+      <h2>Saved Sequences</h2>
+      <p id="status" class="status">Loading...</p>
+      <ul id="sequenceList" class="sequence-list"></ul>
+    </section>
+
+    <section class="card">
+      <h2>Specific Nucleotide Sequence Finder</h2>
+      <label>
+        Sequence to Find
+        <input type="text" id="findQuery" placeholder="e.g. CTAAC">
+      </label>
+      <button type="button" id="findBtn">Find Sequence</button>
+      <p id="findMessage" class="message"></p>
+      <div id="findResults" style="display:none; margin-top: 1rem;"></div>
+    </section>
+
+    <footer>
+      <p>Backend: Node.js + Express · Database: MongoDB</p>
+    </footer>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

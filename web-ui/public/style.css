@@ -1,0 +1,203 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  color: #333;
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+header {
+  text-align: center;
+  color: white;
+  margin-bottom: 2rem;
+}
+
+header h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  opacity: 0.9;
+  font-size: 0.95rem;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.card h2 {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: #667eea;
+}
+
+label {
+  display: block;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #555;
+}
+
+input, textarea {
+  display: block;
+  width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+textarea {
+  resize: vertical;
+  font-family: 'Consolas', monospace;
+}
+
+button {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+button:hover {
+  background: #5a6fd6;
+}
+
+.message {
+  margin-top: 1rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  display: none;
+}
+
+.message.success {
+  display: block;
+  background: #d4edda;
+  color: #155724;
+}
+
+.message.error {
+  display: block;
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.status {
+  font-size: 0.85rem;
+  color: #888;
+  margin-bottom: 1rem;
+}
+
+.sequence-list {
+  list-style: none;
+}
+
+.sequence-list li {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  border-left: 4px solid #667eea;
+}
+
+.sequence-list .name {
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 0.35rem;
+}
+
+.sequence-list .seq {
+  font-family: 'Consolas', monospace;
+  font-size: 0.9rem;
+  color: #555;
+  word-break: break-all;
+}
+
+.sequence-list .meta {
+  font-size: 0.8rem;
+  color: #999;
+  margin-top: 0.5rem;
+}
+
+.sequence-list .delete-btn {
+  background: #dc3545;
+  width: auto;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+}
+
+.sequence-list .delete-btn:hover {
+  background: #c82333;
+}
+
+.empty {
+  text-align: center;
+  color: #999;
+  padding: 2rem;
+}
+
+footer {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+}
+
+.finder-result-item {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.5rem;
+  border-left: 4px solid #667eea;
+}
+
+.finder-badge {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.finder-badge.found {
+  background: #d4edda;
+  color: #155724;
+}
+
+.finder-badge.not-found {
+  background: #f8d7da;
+  color: #721c24;
+}
+
